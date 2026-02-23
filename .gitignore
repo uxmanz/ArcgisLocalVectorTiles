@@ -1,0 +1,11 @@
+node_modules
+dist
+.idea
+.git
+old
+tmp
+.vscode
+.vs
+DynamicResource
+backup
+.node-persist

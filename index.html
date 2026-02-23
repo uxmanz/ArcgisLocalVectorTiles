@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="initial-scale=1,maximum-scale=1,user-scalable=no"
+        />
+        <title>
+            Local Vector Map with Theme | ArcGIS Maps SDK for JavaScript
+        </title>
+
+        <!-- CSS -->
+        <link
+            rel="stylesheet"
+            href="https://js.arcgis.com/4.34/esri/themes/light/main.css"
+        />
+
+        <script src="https://js.arcgis.com/4.34/"></script>
+        <style>
+            html,
+            body,
+            #viewDiv {
+                padding: 0;
+                margin: 0;
+                height: 100%;
+                width: 100%;
+            }
+
+            #info {
+                position: absolute;
+                bottom: 20px;
+                left: 20px;
+                background: rgba(255, 255, 255, 0.9);
+                padding: 15px;
+                border-radius: 8px;
+                font:
+                    14px/1.4 Arial,
+                    sans-serif;
+                max-width: 350px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+            #info h3 {
+                margin: 0 0 10px;
+                color: #333;
+            }
+            #info code {
+                background: #f5f5f5;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 12px;
+            }
+            #info hr {
+                margin: 10px 0;
+                border-color: #ddd;
+            }
+
+            .status {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                margin-right: 5px;
+            }
+            .status.online {
+                background: #4caf50;
+            }
+            .status.offline {
+                background: #f44336;
+            }
+            .status.loading {
+                background: #ff9800;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="viewDiv"></div>
+
+        <div id="info">
+            <h3>🗺️ Local Vector Tiles with Theme Demo</h3>
+            <p>
+                This demonstrates loading locally hosted vector tiles with theme
+                instead of ArcGIS online portal.
+            </p>
+            <p>
+                <span id="status-indicator" class="status loading"></span>
+                <span id="status-text">Loading Vector…</span>
+            </p>
+            <hr />
+            <p>
+                <strong>Tile Server:</strong><br /><code>localhost:5567</code>
+            </p>
+        </div>
+
+        <!-- JS -->
+        <script src="https://js.arcgis.com/4.34/"></script>
+        <script>
+            require([
+                "esri/Map",
+                "esri/views/SceneView",
+                "esri/layers/VectorTileLayer",
+                "esri/config",
+            ], (Map, SceneView, VectorTileLayer, esriConfig) => {
+                esriConfig.log.level = "none";
+
+                /* ---------- Local vector tile layer ---------- */
+                const vectorLayer = new VectorTileLayer({
+                    url: "http://localhost:5567/Models/Novastyle/nova-style.json",
+                });
+
+                /* ---------- Map & View ---------- */
+                const map = new Map({ layers: [vectorLayer] });
+
+                const view = new SceneView({
+                    container: "viewDiv",
+                    map,
+                    camera: {
+                        heading: 0,
+                        tilt: 0,
+                        position: {
+                            latitude: 33.779325,
+                            longitude: 72.942013,
+                            z: 199900,
+                        },
+                    },
+                    viewingMode: "global",
+                    background: { type: "color", color: [0, 0, 0, 255] },
+                    alphaCompositingEnabled: true,
+                    ui: { components: [] }, // remove default UI
+                });
+
+                view.environment = {
+                    background: { type: "color", color: [0, 0, 0, 255] },
+                    atmosphereEnabled: true,
+                    lighting: {
+                        directShadowsEnabled: true,
+                        ambientOcclusionEnabled: false,
+                    },
+                    starsEnabled: true,
+                };
+
+                /* ---------- Status helpers ---------- */
+                const statusIndicator =
+                    document.getElementById("status-indicator");
+                const statusText = document.getElementById("status-text");
+
+                function setStatus(cls, msg) {
+                    statusIndicator.className = "status " + cls;
+                    statusText.textContent = msg;
+                }
+
+                /* ---------- Load monitoring ---------- */
+                vectorLayer
+                    .when(() =>
+                        setStatus("online", "Local vector tiles loaded"),
+                    )
+                    .catch((err) =>
+                        setStatus(
+                            "offline",
+                            "Vector tiles failed: " + err.message,
+                        ),
+                    );
+
+                view.when(() => console.log("SceneView ready")).catch((err) =>
+                    console.error("SceneView failed:", err),
+                );
+            });
+        </script>
+    </body>
+</html>
