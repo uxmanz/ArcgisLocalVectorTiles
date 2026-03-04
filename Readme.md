@@ -487,6 +487,12 @@ CORS is enabled to allow:
 
 ------
 
+**Demo page in Action:**
+
+![Demo](demo.png)
+
+------
+
 ## 📄 License
 
 MIT License
